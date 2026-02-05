@@ -1,0 +1,76 @@
+BASELINE SUMMARY
+============================================================
+
+Size 5x5
+------------------------------------------------------------
+annealing  | solved:  100.0% | median time: 0.0013646000006701797 | median score (unsolved): 0
+local      | solved:  100.0% | median time: 0.00013174999912735075 | median score (unsolved): 0
+tabu       | solved:  100.0% | median time: 0.00040079999598674476 | median score (unsolved): 0
+
+Size 6x6
+------------------------------------------------------------
+annealing  | solved:  100.0% | median time: 0.0019417500006966293 | median score (unsolved): 0
+local      | solved:  100.0% | median time: 0.00020514999778242782 | median score (unsolved): 0
+tabu       | solved:   96.7% | median time: 0.00048129999777302146 | median score (unsolved): 2
+
+Size 7x7
+------------------------------------------------------------
+annealing  | solved:  100.0% | median time: 0.003569149994291365 | median score (unsolved): 0
+local      | solved:  100.0% | median time: 0.0005027500010328367 | median score (unsolved): 0
+tabu       | solved:   73.3% | median time: 0.009165050003502984 | median score (unsolved): 1.5
+
+Size 8x8
+------------------------------------------------------------
+annealing  | solved:   90.0% | median time: 0.005979699999443255 | median score (unsolved): 2
+local      | solved:   93.3% | median time: 0.0006938499936950393 | median score (unsolved): 2.5
+tabu       | solved:   53.3% | median time: 0.01593920000595972 | median score (unsolved): 2.0
+
+Size 9x9
+------------------------------------------------------------
+annealing  | solved:   60.0% | median time: 0.014431050003622659 | median score (unsolved): 3.0
+local      | solved:   83.3% | median time: 0.0016042000061133876 | median score (unsolved): 3
+tabu       | solved:   43.3% | median time: 0.09065309999277815 | median score (unsolved): 1
+
+Size 10x10
+------------------------------------------------------------
+annealing  | solved:   16.7% | median time: 0.013131699990481138 | median score (unsolved): 6
+local      | solved:   63.3% | median time: 0.004807199991773814 | median score (unsolved): 3
+tabu       | solved:    6.7% | median time: 0.08800019999762299 | median score (unsolved): 1.5
+
+Size 11x11
+------------------------------------------------------------
+annealing  | solved:    3.3% | median time: 0.004397600001539104 | median score (unsolved): 7
+local      | solved:   26.7% | median time: 0.004671300004702061 | median score (unsolved): 3.5
+tabu       | solved:    3.3% | median time: 0.0008283999923150986 | median score (unsolved): 1
+
+Size 12x12
+------------------------------------------------------------
+annealing  | solved:    0.0% | median time:        - | median score (unsolved): 10.5
+local      | solved:   26.7% | median time: 0.007434949999151286 | median score (unsolved): 5.0
+tabu       | solved:    0.0% | median time:        - | median score (unsolved): 1.0
+
+Size 13x13
+------------------------------------------------------------
+annealing  | solved:    0.0% | median time:        - | median score (unsolved): 13.0
+local      | solved:    3.3% | median time: 0.008892900004866533 | median score (unsolved): 6
+tabu       | solved:    0.0% | median time:        - | median score (unsolved): 2.0
+
+Size 14x14
+------------------------------------------------------------
+annealing  | solved:    0.0% | median time:        - | median score (unsolved): 17.0
+local      | solved:   10.0% | median time: 0.003987600008258596 | median score (unsolved): 8
+tabu       | solved:    0.0% | median time:        - | median score (unsolved): 1.5
+
+Size 15x15
+------------------------------------------------------------
+annealing  | solved:    0.0% | median time:        - | median score (unsolved): 21.0
+local      | solved:    0.0% | median time:        - | median score (unsolved): 8.5
+tabu       | solved:    0.0% | median time:        - | median score (unsolved): 2.0
+
+
+
+Size 20x20
+------------------------------------------------------------
+annealing  | solved:    0.0% | median time:        - | median score (unsolved): 43
+local      | solved:    0.0% | median time:        - | median score (unsolved): 17
+tabu       | solved:    0.0% | median time:        - | median score (unsolved): 6
