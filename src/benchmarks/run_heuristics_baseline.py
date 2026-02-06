@@ -37,9 +37,9 @@ def main():
     #out_path = out_dir / "tabu_10_1_iter.json"
     #out_path = out_dir / "tabu_10_2_iter.json"
     #out_path = out_dir / "anneal_3.json"
-    out_path = out_dir / "test_local_visited_3.json"
+    out_path = out_dir / "test_annealing_new_3.json"
     #methods = ["local", "annealing", "tabu"]
-    methods = ["local"]
+    methods = ["annealing"]
     restarts = 10
 
     results = {

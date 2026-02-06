@@ -10,7 +10,7 @@ def main():
     #path = Path("src/benchmarks/results/tabu_7_dict_score_stable_seed.json")
     #path = Path("src/benchmarks/results/tabu_8_orig_2score_stable_seed.json")
     #path = Path("src/benchmarks/results/tabu_4_origlist_stable_seed.json")
-    path = Path("src/benchmarks/results/test_local_visited_3.json")
+    path = Path("src/benchmarks/results/test_annealing_new_3.json")
     data = json.load(open(path, encoding="utf-8"))
 
     runs = data["runs"]

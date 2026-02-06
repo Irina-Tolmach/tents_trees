@@ -335,7 +335,7 @@ class Metaheuristics:
         self.best_score = best_score
         return tents
 
-    def simulated_annealing(self, row_limits, col_limits, initial_temperature=10.0, cooling_rate=0.95,
+    def simulated_annealing(self, row_limits, col_limits, initial_temperature=10.0, cooling_rate=0.99,
                              min_temperature=0.01, max_stagnation=100):
         for _ in range(5):
             initializer = GreedyInitializer(self.grid.copy(), row_limits[:], col_limits[:])
@@ -346,6 +346,8 @@ class Metaheuristics:
         else:
             return None
 
+        occupied = set(current_tents)
+
         best_tents = current_tents[:]
         best_score = self.evaluate(best_tents)
         max_score = best_score
@@ -355,22 +357,32 @@ class Metaheuristics:
         row_counts = self.row_counts[:]
         col_counts = self.col_counts[:]
 
+        bad_rows = set(r for r in range(self.n) if row_counts[r] != row_limits[r])
+        bad_cols = set(c for c in range(self.m) if col_counts[c] != col_limits[c])
+
+
+        #reheating
+        no_improve = 0
+        reheat_steps = 100  # итерации
+        reheat_mult = 1.7  # коэф
+        reheat_max = 5
+        reheats_used = 0
+
         for _ in range(self.max_iters*len(self.trees)):
             if temperature < min_temperature:
                 break
+            prev_best = best_score
             #чаще берем палатку из "плохой" строки/столбца
             if random.random() < 0.7:
-                bad_rows = [r for r in range(self.n) if row_counts[r] != row_limits[r]]
-                bad_cols = [c for c in range(self.m) if col_counts[c] != col_limits[c]]
 
                 chosen = None
                 if bad_rows or bad_cols:
                     use_row = bool(bad_rows) and (not bad_cols or random.random() < 0.5)
                     if use_row:
-                        r = random.choice(bad_rows)
+                        r = random.choice(tuple(bad_rows))
                         cand = [idx for idx, t in enumerate(current_tents) if t[0] == r]
                     else:
-                        c = random.choice(bad_cols)
+                        c = random.choice(tuple(bad_cols))
                         cand = [idx for idx, t in enumerate(current_tents) if t[1] == c]
                     if cand:
                         chosen = random.choice(cand)
@@ -382,9 +394,11 @@ class Metaheuristics:
             tree = self.trees[i]
             current_tent = current_tents[i]
 
-            neighbors = self.get_neighbors(tree, current_tents)
+            # neighbors = self.get_neighbors(tree, current_tents)
+            neighbors = self.get_neighbors(tree, occupied)
             if not neighbors:
                 temperature *= cooling_rate
+                no_improve += 1
                 continue
 
             candidate = random.choice(neighbors)
@@ -400,10 +414,11 @@ class Metaheuristics:
             new_tents = current_tents[:]
             new_tents[i] = candidate
 
-            check = self.evaluate(new_tents)
-            self.eva += 1
-            if new_score != check:
-                new_score = check
+            # check = self.evaluate(new_tents)
+            # self.eva += 1
+            # if new_score != check:
+            #     print(f"Check!")
+            #     new_score = check
 
             delta = new_score - current_score
 
@@ -417,6 +432,8 @@ class Metaheuristics:
 
             if accept:
                 current_tents[i] = candidate
+                occupied.remove(current_tent)
+                occupied.add(candidate)
                 x1, y1 = current_tent
                 x2, y2 = candidate
                 row_counts[x1] -= 1
@@ -424,10 +441,35 @@ class Metaheuristics:
                 row_counts[x2] += 1
                 col_counts[y2] += 1
                 current_score = new_score
+                # обновляем bad_rows/bad_cols
+                for r in (x1, x2):
+                    if row_counts[r] != row_limits[r]:
+                        bad_rows.add(r)
+                    else:
+                        bad_rows.discard(r)
+
+                for c in (y1, y2):
+                    if col_counts[c] != col_limits[c]:
+                        bad_cols.add(c)
+                    else:
+                        bad_cols.discard(c)
 
                 if new_score < best_score:
                     best_score = new_score
                     best_tents = current_tents[:]
+
+            #reheating
+            if best_score < prev_best:
+                no_improve = 0
+            else:
+                no_improve += 1
+
+            if no_improve >= reheat_steps:
+                if reheats_used >= reheat_max:
+                    break
+                temperature *= reheat_mult
+                reheats_used += 1
+                no_improve = 0
 
             temperature *= cooling_rate
 

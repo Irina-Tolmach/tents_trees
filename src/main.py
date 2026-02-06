@@ -6,7 +6,7 @@ import numpy as np
 import statistics
 from src.algorithms.backtracking_solver import BacktrackSolver
 from src.algorithms.ilp_solver import ilp_solver
-from src.algorithms.metaheuristics_old import Metaheuristics_Old
+from src.algorithms.metaheuristics import Metaheuristics
 from src.grid.grid import GridOptim
 
 
@@ -132,19 +132,19 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
 
         grid_copy = [row[:] for row in grid]
 
-        ilp_time = ilp([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        ilp_times.append(ilp_time[1])
-
-        boo, back_time = backtrack([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        back_times.append(back_time)
-        if boo:
-            back_cnt_solve += 1
-
-        ls_eva, ls_time = local_search([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        ls_times.append(ls_time)
-        ls_evaluate.append(ls_eva)
-        if ls_eva == 0:
-            ls_cnt_solve += 1
+        # ilp_time = ilp([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # ilp_times.append(ilp_time[1])
+        #
+        # boo, back_time = backtrack([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # back_times.append(back_time)
+        # if boo:
+        #     back_cnt_solve += 1
+        #
+        # ls_eva, ls_time = local_search([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # ls_times.append(ls_time)
+        # ls_evaluate.append(ls_eva)
+        # if ls_eva == 0:
+        #     ls_cnt_solve += 1
 
         sa_eva, sa_time = annealing([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
         sa_times.append(sa_time)
@@ -152,11 +152,11 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
         if sa_eva == 0:
             sa_cnt_solve += 1
 
-        tabu_eva, tabu_time = tabu([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        tabu_times.append(tabu_time)
-        tabu_evaluate.append(tabu_eva)
-        if tabu_eva == 0:
-            tabu_cnt_solve += 1
+        # tabu_eva, tabu_time = tabu([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # tabu_times.append(tabu_time)
+        # tabu_evaluate.append(tabu_eva)
+        # if tabu_eva == 0:
+        #     tabu_cnt_solve += 1
 
         print(f"Done: {filename} task {idx + 1}/{n}")
 
@@ -192,16 +192,16 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
     #     if tabu_eva == 0:
     #         tabu_cnt_solve += 1
 
-    print_algorithm_times('ilp', ilp_times, None, n, [0] * n)
-    save_algorithm_times(f'src/results/result_old_{filename}','ilp', ilp_times, None, n, [0] * n)
-    print_algorithm_times('backtracking', back_times, back_cnt_solve, n, [0] * n)
-    save_algorithm_times(f'src/results/result_old_{filename}', 'backtracking', back_times, back_cnt_solve, n, [0] * n)
-    print_algorithm_times('local', ls_times, ls_cnt_solve, n, ls_evaluate)
-    save_algorithm_times(f'src/results/result_old_{filename}', 'local', ls_times, ls_cnt_solve, n, ls_evaluate)
+    # print_algorithm_times('ilp', ilp_times, None, n, [0] * n)
+    # save_algorithm_times(f'src/results/result_old_{filename}','ilp', ilp_times, None, n, [0] * n)
+    # print_algorithm_times('backtracking', back_times, back_cnt_solve, n, [0] * n)
+    # save_algorithm_times(f'src/results/result_old_{filename}', 'backtracking', back_times, back_cnt_solve, n, [0] * n)
+    # print_algorithm_times('local', ls_times, ls_cnt_solve, n, ls_evaluate)
+    # save_algorithm_times(f'src/results/result_old_{filename}', 'local', ls_times, ls_cnt_solve, n, ls_evaluate)
     print_algorithm_times('annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
-    save_algorithm_times(f'src/results/result_old_{filename}', 'annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
-    print_algorithm_times('tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
-    save_algorithm_times(f'src/results/result_old_{filename}', 'tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
+    save_algorithm_times(f'src/results/result_annealing_{filename}', 'annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
+    # print_algorithm_times('tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
+    # save_algorithm_times(f'src/results/result_old_{filename}', 'tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
 
 
 def print_algorithm_times(name, times, cnt_solve, n, evaluate):
@@ -239,7 +239,7 @@ def backtrack(grid, row_constraints, col_constraints):
 
 @timer
 def local_search(grid, row_constraints, col_constraints, random_init=True):
-    local_search_solver = Metaheuristics_Old(grid[:], row_constraints, col_constraints)
+    local_search_solver = Metaheuristics(grid[:], row_constraints, col_constraints)
     res = (
         local_search_solver.solve(row_constraints, col_constraints, 100, method="local"))
     tents, best_score, max_score, eva, cnt_restarts = res[0], res[1], res[2], res[3], res[4]
@@ -249,7 +249,7 @@ def local_search(grid, row_constraints, col_constraints, random_init=True):
 
 @timer
 def annealing(grid, row_constraints, col_constraints):
-    annealing_search_solver = Metaheuristics_Old(grid[:], row_constraints, col_constraints)
+    annealing_search_solver = Metaheuristics(grid[:], row_constraints, col_constraints)
     res = \
         annealing_search_solver.solve(row_constraints, col_constraints, 150, method="annealing")
     tents, best_score, max_score, eva, cnt_restarts = res[0], res[1], res[2], res[3], res[4]
@@ -259,7 +259,7 @@ def annealing(grid, row_constraints, col_constraints):
 
 @timer
 def tabu(grid, row_constraints, col_constraints):
-    tabu_search_solver = Metaheuristics_Old(grid[:], row_constraints, col_constraints, max_iters=500)
+    tabu_search_solver = Metaheuristics(grid[:], row_constraints, col_constraints, max_iters=500)
     res = (
         tabu_search_solver.solve(row_constraints, col_constraints, 100, method="tabu"))
     tents, best_score, max_score, eva, cnt_restarts = res[0], res[1], res[2], res[3], res[4]
