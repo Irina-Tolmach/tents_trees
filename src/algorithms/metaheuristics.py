@@ -32,6 +32,8 @@ class Metaheuristics:
         self.tree_neighbors = {tree: self.get_neighbors(tree, set()) for tree in self.trees}
         self.eva = 0
         self.best_score = 0
+        self.w_adj = 3
+        self.w_line = 1
 
     def norm_pair(self, a, b):
         return (a, b) if a <= b else (b, a)
@@ -123,6 +125,93 @@ class Metaheuristics:
 
         return old_score + delta
 
+    def evaluate_update(self, tents):
+        score = 0
+        self.row_counts = [0] * self.n
+        self.col_counts = [0] * self.m
+        tent_set = set(tents)
+        #visited_pairs = set()
+
+        for x, y in tents:
+            self.row_counts[x] += 1
+            self.col_counts[y] += 1
+
+            for dx, dy in NEIGHBORS:
+                if dx == 0 and dy == 0:
+                    continue
+
+                if dx < 0 or (dx == 0 and dy < 0):
+                    continue
+                nx = x + dx
+                ny = y + dy
+                if (nx, ny) in tent_set:
+                    score += self.w_adj
+
+        for i in range(self.n):
+            d = self.row_counts[i] - self.row_limits[i]
+            score += self.w_line * d * d
+        for j in range(self.m):
+            d = self.col_counts[j] - self.col_limits[j]
+            score += self.w_line * d * d
+
+        return score
+
+    def delta_evaluate_update(self, tents, old_pos, new_pos, old_score, row_counts_old, col_counts_old):
+        if old_pos == new_pos:
+            return old_score
+        row_counts = row_counts_old[:]
+        col_counts = col_counts_old[:]
+
+        x1, y1 = old_pos
+        x2, y2 = new_pos
+
+        delta = 0
+        old_visited_pairs = set()
+
+        tent_set = set(tents)
+
+        # Удаляем штрафы соседства у старой палатки
+        for dx, dy in NEIGHBORS:
+            if dx == dy == 0:
+                continue
+            nx, ny = x1 + dx, y1 + dy
+            if (nx, ny) in tent_set:
+                delta -= self.w_adj
+
+        tent_set.remove(old_pos)
+        tent_set.add(new_pos)
+
+        new_visited_pairs = set()
+        # Добавляем штрафы соседства у новой палатки
+        for dx, dy in NEIGHBORS:
+            if dx == dy == 0:
+                continue
+            nx, ny = x2 + dx, y2 + dy
+            if (nx, ny) in tent_set:
+                delta += self.w_adj
+
+        # Штраф за строки
+        def row_penalty(i, delta_count):
+            before = row_counts[i]
+            a = before - self.row_limits[i]
+            b = (before + delta_count) - self.row_limits[i]
+            return self.w_line*(b * b - a * a)
+
+        def col_penalty(j, delta_count):
+            before = col_counts[j]
+            a = before - self.col_limits[j]
+            b = (before + delta_count) - self.col_limits[j]
+            return self.w_line*(b * b - a * a)
+
+        delta += row_penalty(x1, -1)
+        delta += col_penalty(y1, -1)
+        row_counts[x1] -= 1
+        col_counts[y1] -= 1
+        delta += row_penalty(x2, 1)
+        delta += col_penalty(y2, 1)
+
+        return old_score + delta
+
     def get_neighbors(self, tree_pos, occupied):
         neighbors = []
         for dx, dy in DIRS:
@@ -162,6 +251,7 @@ class Metaheuristics:
                 tents[i] = random.choice(neighbors)
 
     def tabu_search(self, row_limits, col_limits, tabu_size=150, max_stagnation=200):
+        tabu_size = math.sqrt(len(self.trees)).__ceil__()
         for _ in range(5):
             initializer = GreedyInitializer(self.grid.copy(), row_limits[:], col_limits[:])
             trees, current_tents = initializer.initialize()
@@ -173,7 +263,7 @@ class Metaheuristics:
         trees = [(i, tree) for i, tree in enumerate(trees)]
 
         best_tents = current_tents[:]
-        best_score = self.evaluate(best_tents)
+        best_score = self.evaluate_update(best_tents)
         max_score = best_score
         current_score = best_score
 
@@ -202,7 +292,7 @@ class Metaheuristics:
                     row_counts_tmp = row_counts[:]
                     col_counts_tmp = col_counts[:]
 
-                    new_score = self.delta_evaluate(
+                    new_score = self.delta_evaluate_update(
                         current_tents,
                         current_tent,
                         candidate,
@@ -263,7 +353,7 @@ class Metaheuristics:
 
         trees = [(i, tree) for i, tree in enumerate(trees)]
 
-        best_score = self.evaluate(tents)
+        best_score = self.evaluate_update(tents)
         self.eva += 1
         max_score = int(best_score)
         row_counts = self.row_counts[:]
@@ -283,7 +373,7 @@ class Metaheuristics:
                 neighbors = self.get_neighbors(tree, tents)
 
                 for candidate in neighbors:
-                    score = self.delta_evaluate(tents, current_tent, candidate, best_score,
+                    score = self.delta_evaluate_update(tents, current_tent, candidate, best_score,
                                                 row_counts[:], col_counts[:])
                     self.eva += 1
                     take = False
@@ -320,7 +410,7 @@ class Metaheuristics:
                 if stagnation >= stagnation_limit and kick_used < kick_max:
                     self.random_kick(tents, strength=kick_strength)
                     # послt перемешивания пересчитываем счётчики
-                    best_score = self.evaluate(tents)
+                    best_score = self.evaluate_update(tents)
                     self.eva += 1
                     row_counts = self.row_counts[:]
                     col_counts = self.col_counts[:]
@@ -336,7 +426,7 @@ class Metaheuristics:
         return tents
 
     def simulated_annealing(self, row_limits, col_limits, initial_temperature=10.0, cooling_rate=0.99,
-                             min_temperature=0.01, max_stagnation=100):
+                            min_temperature=0.01, max_stagnation=100):
         for _ in range(5):
             initializer = GreedyInitializer(self.grid.copy(), row_limits[:], col_limits[:])
             trees, current_tents = initializer.initialize()
@@ -349,7 +439,7 @@ class Metaheuristics:
         occupied = set(current_tents)
 
         best_tents = current_tents[:]
-        best_score = self.evaluate(best_tents)
+        best_score = self.evaluate_update(best_tents)
         max_score = best_score
         current_score = best_score
         temperature = initial_temperature
@@ -360,19 +450,18 @@ class Metaheuristics:
         bad_rows = set(r for r in range(self.n) if row_counts[r] != row_limits[r])
         bad_cols = set(c for c in range(self.m) if col_counts[c] != col_limits[c])
 
-
-        #reheating
+        # reheating
         no_improve = 0
         reheat_steps = 100  # итерации
         reheat_mult = 1.7  # коэф
         reheat_max = 5
         reheats_used = 0
 
-        for _ in range(self.max_iters*len(self.trees)):
+        for _ in range(self.max_iters * len(self.trees)):
             if temperature < min_temperature:
                 break
             prev_best = best_score
-            #чаще берем палатку из "плохой" строки/столбца
+            # чаще берем палатку из "плохой" строки/столбца
             if random.random() < 0.7:
 
                 chosen = None
@@ -403,7 +492,7 @@ class Metaheuristics:
 
             candidate = random.choice(neighbors)
 
-            new_score = self.delta_evaluate(
+            new_score = self.delta_evaluate_update(
                 current_tents,
                 current_tent,
                 candidate,
@@ -458,7 +547,7 @@ class Metaheuristics:
                     best_score = new_score
                     best_tents = current_tents[:]
 
-            #reheating
+            # reheating
             if best_score < prev_best:
                 no_improve = 0
             else:
