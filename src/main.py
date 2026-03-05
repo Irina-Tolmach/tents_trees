@@ -25,7 +25,8 @@ def timer(func):
 
 def main():
 #    test_algorithms(100, 10, 10)
-     test_algorithms(0, 14, 14, from_file=True)
+#     for i in range(10, 15):
+    test_algorithms(0, 10, 10, from_file=True)
 
 
 def save_grid(filename, grid, row_constraints, col_constraints):
@@ -140,23 +141,23 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
         # if boo:
         #     back_cnt_solve += 1
         #
-        ls_eva, ls_time = local_search([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        ls_times.append(ls_time)
-        ls_evaluate.append(ls_eva)
-        if ls_eva == 0:
-            ls_cnt_solve += 1
+        # ls_eva, ls_time = local_search([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # ls_times.append(ls_time)
+        # ls_evaluate.append(ls_eva)
+        # if ls_eva == 0:
+        #     ls_cnt_solve += 1
 
-        # sa_eva, sa_time = annealing([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        # sa_times.append(sa_time)
-        # sa_evaluate.append(sa_eva)
-        # if sa_eva == 0:
-        #     sa_cnt_solve += 1
+        sa_eva, sa_time = annealing([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        sa_times.append(sa_time)
+        sa_evaluate.append(sa_eva)
+        if sa_eva == 0:
+            sa_cnt_solve += 1
 
-        tabu_eva, tabu_time = tabu([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        tabu_times.append(tabu_time)
-        tabu_evaluate.append(tabu_eva)
-        if tabu_eva == 0:
-            tabu_cnt_solve += 1
+        # tabu_eva, tabu_time = tabu([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # tabu_times.append(tabu_time)
+        # tabu_evaluate.append(tabu_eva)
+        # if tabu_eva == 0:
+        #     tabu_cnt_solve += 1
 
         print(f"Done: {filename} task {idx + 1}/{n}")
 
@@ -196,12 +197,12 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
     # save_algorithm_times(f'src/results/result_old_{filename}','ilp', ilp_times, None, n, [0] * n)
     # print_algorithm_times('backtracking', back_times, back_cnt_solve, n, [0] * n)
     # save_algorithm_times(f'src/results/result_old_{filename}', 'backtracking', back_times, back_cnt_solve, n, [0] * n)
-    print_algorithm_times('local', ls_times, ls_cnt_solve, n, ls_evaluate)
-    save_algorithm_times(f'src/results/result_local_3w_{filename}', 'local', ls_times, ls_cnt_solve, n, ls_evaluate)
-    # print_algorithm_times('annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
-    # save_algorithm_times(f'src/results/result_annealing_4v_3w_{filename}', 'annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
-    print_algorithm_times('tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
-    save_algorithm_times(f'src/results/result_tabu_3w_{filename}', 'tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
+    # print_algorithm_times('local', ls_times, ls_cnt_solve, n, ls_evaluate)
+    # save_algorithm_times(f'src/results/result_local_fine_6_{filename}', 'local', ls_times, ls_cnt_solve, n, ls_evaluate)
+    print_algorithm_times('annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
+    save_algorithm_times(f'src/results/result_annealing_fine_6_second_{filename}', 'annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
+    # print_algorithm_times('tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
+    # save_algorithm_times(f'src/results/result_tabu_fine_6_{filename}', 'tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
 
 
 def print_algorithm_times(name, times, cnt_solve, n, evaluate):

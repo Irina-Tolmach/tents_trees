@@ -32,7 +32,7 @@ class Metaheuristics:
         self.tree_neighbors = {tree: self.get_neighbors(tree, set()) for tree in self.trees}
         self.eva = 0
         self.best_score = 0
-        self.w_adj = 3
+        self.w_adj = 2
         self.w_line = 1
 
     def norm_pair(self, a, b):
