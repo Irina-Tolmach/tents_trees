@@ -154,6 +154,18 @@ class Metaheuristics:
             d = self.col_counts[j] - self.col_limits[j]
             score += self.w_line * d * d
 
+        # adj_sum = 0
+        # for x, y in tents:
+        #     neigh_cnt = 0
+        #     for dx, dy in NEIGHBORS:
+        #         nx = x + dx
+        #         ny = y + dy
+        #         if (nx, ny) in tent_set:
+        #             neigh_cnt += 1
+        #     adj_sum += neigh_cnt * neigh_cnt
+        #
+        # score += adj_sum/2
+
         return score
 
     def delta_evaluate_update(self, tents, old_pos, new_pos, old_score, row_counts_old, col_counts_old):
@@ -169,8 +181,9 @@ class Metaheuristics:
         old_visited_pairs = set()
 
         tent_set = set(tents)
-
-        # Удаляем штрафы соседства у старой палатки
+        if old_pos not in tent_set:
+            return None
+        #Удаляем штрафы соседства у старой палатки
         for dx, dy in NEIGHBORS:
             if dx == dy == 0:
                 continue
@@ -209,6 +222,58 @@ class Metaheuristics:
         col_counts[y1] -= 1
         delta += row_penalty(x2, 1)
         delta += col_penalty(y2, 1)
+
+        if old_pos not in tent_set:
+            return None
+        #
+        # муть
+        #  # соседи old_pos до переноса
+        # old_neighbors = set()
+        # for dx, dy in NEIGHBORS:
+        #     nx, ny = x1 + dx, y1 + dy
+        #     if (nx, ny) in tent_set:
+        #         old_neighbors.add((nx, ny))
+        #
+        # deg_old = len(old_neighbors)
+        #
+        # # состояние после переноса
+        # tent_set.remove(old_pos)
+        # tent_set.add(new_pos)
+        #
+        # # соседи new_pos после переноса
+        # new_neighbors = set()
+        # for dx, dy in NEIGHBORS:
+        #     nx, ny = x2 + dx, y2 + dy
+        #     if (nx, ny) in tent_set:
+        #         new_neighbors.add((nx, ny))
+        #
+        # deg_new = len(new_neighbors)
+        #
+        # # вклад самой переносимой палатки:
+        # я
+        # delta_adj = 0.5 * (deg_new * deg_new - deg_old * deg_old)
+        #
+        # # объединение перемешенных палаток
+        # affected = old_neighbors | new_neighbors
+        #
+        # for p in affected:
+        #     # степень палатки до переноса
+        #     deg_before = 0
+        #     for dx, dy in NEIGHBORS:
+        #         qx, qy = p[0] + dx, p[1] + dy
+        #         if (qx, qy) in tents:
+        #             deg_before += 1
+        #
+        #     # степень этой палатки после переноса
+        #     deg_after = 0
+        #     for dx, dy in NEIGHBORS:
+        #         qx, qy = p[0] + dx, p[1] + dy
+        #         if (qx, qy) in tent_set:
+        #             deg_after += 1
+        #
+        #     delta_adj += 0.5 * (deg_after * deg_after - deg_before * deg_before)
+        #
+        # delta += delta_adj
 
         return old_score + delta
 
@@ -374,7 +439,15 @@ class Metaheuristics:
 
                 for candidate in neighbors:
                     score = self.delta_evaluate_update(tents, current_tent, candidate, best_score,
-                                                row_counts[:], col_counts[:])
+                                                 row_counts[:], col_counts[:])
+                    #ПРОверка
+                    # tmp = tents[:]
+                    # tmp[i] = candidate
+                    # full = self.evaluate_update(tmp)
+                    #
+                    # if score != full:
+                    #     print("DELTA MISMATCH", score, full)
+
                     self.eva += 1
                     take = False
                     is_strict_improve = False
