@@ -32,8 +32,9 @@ class Metaheuristics:
         self.tree_neighbors = {tree: self.get_neighbors(tree, set()) for tree in self.trees}
         self.eva = 0
         self.best_score = 0
-        self.w_adj = 2
+        self.w_adj = (self.n+self.m)
         self.w_line = 1
+
 
     def norm_pair(self, a, b):
         return (a, b) if a <= b else (b, a)
@@ -208,13 +209,13 @@ class Metaheuristics:
             before = row_counts[i]
             a = before - self.row_limits[i]
             b = (before + delta_count) - self.row_limits[i]
-            return self.w_line*(b * b - a * a)
+            return self.w_line*(b*b - a*a)
 
         def col_penalty(j, delta_count):
             before = col_counts[j]
             a = before - self.col_limits[j]
             b = (before + delta_count) - self.col_limits[j]
-            return self.w_line*(b * b - a * a)
+            return self.w_line*(b*b - a*a)
 
         delta += row_penalty(x1, -1)
         delta += col_penalty(y1, -1)
@@ -223,8 +224,8 @@ class Metaheuristics:
         delta += row_penalty(x2, 1)
         delta += col_penalty(y2, 1)
 
-        if old_pos not in tent_set:
-            return None
+        # if old_pos not in tent_set:
+        #     return None
         #
         # муть
         #  # соседи old_pos до переноса
@@ -423,7 +424,7 @@ class Metaheuristics:
         max_score = int(best_score)
         row_counts = self.row_counts[:]
         col_counts = self.col_counts[:]
-        #Проходы без улучшений, локальная встряска, коэфф. подобраны тестовами прогонами
+        #Проходы без улучшений, локальная встряска
         stagnation = 0
         stagnation_limit = 5
         kick_strength = 4
