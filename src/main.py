@@ -4,8 +4,13 @@ import time
 import numpy as np
 
 import statistics
-from src.algorithms.backtracking_solver import BacktrackSolver
-from src.algorithms.ilp_solver import ilp_solver
+# from src.algorithms.backtracking_solver import BacktrackSolver
+from src.algorithms.backtracking_new import FastBacktrackSolver
+# from src.algorithms.ilp_solver import ilp_solver
+from src.algorithms.ilp_solver_scip import ilp_solver
+#from src.algorithms.metaheuristics_old import Metaheuristics
+#from src.algorithms.metaheuristics_tabu import Metaheuristics
+from src.algorithms.tabu_new import FastTabu
 from src.algorithms.metaheuristics import Metaheuristics
 from src.grid.grid import GridOptim
 
@@ -24,9 +29,10 @@ def timer(func):
 
 
 def main():
-    #test_algorithms(10, 30, 30)
-    for i in range(5, 10):
-        test_algorithms(0, i, i, from_file=True)
+    # test_algorithms(50, 75, 75, from_file=False)
+    # test_algorithms(0, 25, 25, from_file=True)
+    for i in range(45, 46):
+         test_algorithms(0, i, i, from_file=True)
 
 
 def save_grid(filename, grid, row_constraints, col_constraints):
@@ -87,7 +93,7 @@ def save_algorithm_times(filename, name, times, cnt_solve, n, evaluate):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test"):
+def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "test"):
     ilp_times = []
 
     back_times = []
@@ -109,6 +115,8 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
 
     tasks_path = os.path.join(test_dir, filename)
     if from_file:
+        print(os.getcwd())
+        print(tasks_path)
         with open(tasks_path, "r", encoding="utf-8") as f:
             tasks = json.load(f)
         if not isinstance(tasks, list):
@@ -133,31 +141,31 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
 
         grid_copy = [row[:] for row in grid]
 
-        # ilp_time = ilp([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        # ilp_times.append(ilp_time[1])
+        ilp_time = ilp([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        ilp_times.append(ilp_time[1])
         #
         # boo, back_time = backtrack([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
         # back_times.append(back_time)
         # if boo:
         #    back_cnt_solve += 1
 
-        ls_eva, ls_time = local_search([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        ls_times.append(ls_time)
-        ls_evaluate.append(ls_eva)
-        if ls_eva == 0:
-            ls_cnt_solve += 1
-
-        sa_eva, sa_time = annealing([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        sa_times.append(sa_time)
-        sa_evaluate.append(sa_eva)
-        if sa_eva == 0:
-            sa_cnt_solve += 1
-
-        tabu_eva, tabu_time = tabu([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
-        tabu_times.append(tabu_time)
-        tabu_evaluate.append(tabu_eva)
-        if tabu_eva == 0:
-            tabu_cnt_solve += 1
+        # ls_eva, ls_time = local_search([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # ls_times.append(ls_time)
+        # ls_evaluate.append(ls_eva)
+        # if ls_eva == 0:
+        #     ls_cnt_solve += 1
+        #
+        # sa_eva, sa_time = annealing([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # sa_times.append(sa_time)
+        # sa_evaluate.append(sa_eva)
+        # if sa_eva == 0:
+        #     sa_cnt_solve += 1
+        #
+        # tabu_eva, tabu_time = tabu([row[:] for row in grid_copy], row_constraints[:], col_constraints[:])
+        # tabu_times.append(tabu_time)
+        # tabu_evaluate.append(tabu_eva)
+        # if tabu_eva == 0:
+        #     tabu_cnt_solve += 1
 
         print(f"Done: {filename} task {idx + 1}/{n}")
 
@@ -193,16 +201,16 @@ def test_algorithms(n, size_n, size_m, from_file = False, test_dir = "src/test")
     #     if tabu_eva == 0:
     #         tabu_cnt_solve += 1
 
-    # print_algorithm_times('ilp', ilp_times, None, n, [0] * n)
-    # save_algorithm_times(f'src/results/result_ilp_FINAL_final_{filename}','ilp', ilp_times, None, n, [0] * n)
+    print_algorithm_times('ilp', ilp_times, None, n, [0] * n)
+    save_algorithm_times(f'results/result_ilp_scip_{filename}','ilp', ilp_times, None, n, [0] * n)
     # print_algorithm_times('backtracking', back_times, back_cnt_solve, n, [0] * n)
-    # save_algorithm_times(f'src/results/result_backtracking_FINAL_final_{filename}', 'backtracking', back_times, back_cnt_solve, n, [0] * n)
-    print_algorithm_times('local', ls_times, ls_cnt_solve, n, ls_evaluate)
-    save_algorithm_times(f'src/results/result_local_FINAL_WADJnm_final_{filename}', 'local', ls_times, ls_cnt_solve, n, ls_evaluate)
-    print_algorithm_times('annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
-    save_algorithm_times(f'src/results/result_annealing_FINAL_WADJnm_final_{filename}', 'annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
-    print_algorithm_times('tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
-    save_algorithm_times(f'src/results/result_tabu_FINAL_WADJnm_final_{filename}', 'tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
+    # save_algorithm_times(f'results/result_backtrack_fastnew__file_{filename}', 'backtracking', back_times, back_cnt_solve, n, [0] * n)
+    # print_algorithm_times('local', ls_times, ls_cnt_solve, n, ls_evaluate)
+    # save_algorithm_times(f'src/results/result_local_FINAL_WADJnm_final_{filename}', 'local', ls_times, ls_cnt_solve, n, ls_evaluate)
+    # print_algorithm_times('annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
+    # save_algorithm_times(f'src/results/result_annealing_FINAL_WADJnm_final_{filename}', 'annealing', sa_times, sa_cnt_solve, n, sa_evaluate)
+    # print_algorithm_times('tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
+    # save_algorithm_times(f'results/result_tabu_fast_{filename}', 'tabu', tabu_times, tabu_cnt_solve, n, tabu_evaluate)
 
 
 def print_algorithm_times(name, times, cnt_solve, n, evaluate):
@@ -233,7 +241,7 @@ def ilp(grid, row_constraints, col_constraints):
 @timer
 def backtrack(grid, row_constraints, col_constraints):
     grid_np = np.array(grid, dtype=np.int8)
-    solver_backtracking = BacktrackSolver(grid_np, row_constraints, col_constraints)
+    solver_backtracking = FastBacktrackSolver(grid_np, row_constraints, col_constraints)
     boo = solver_backtracking.solve()
     return boo
 
@@ -260,9 +268,9 @@ def annealing(grid, row_constraints, col_constraints):
 
 @timer
 def tabu(grid, row_constraints, col_constraints):
-    tabu_search_solver = Metaheuristics(grid[:], row_constraints, col_constraints, max_iters=500)
+    tabu_search_solver = FastTabu(grid[:], row_constraints, col_constraints, max_iters=500)
     res = (
-        tabu_search_solver.solve(row_constraints, col_constraints, 100, method="tabu"))
+        tabu_search_solver.solve(row_constraints, col_constraints, 100))
     tents, best_score, max_score, eva, cnt_restarts = res[0], res[1], res[2], res[3], res[4]
 
     return best_score

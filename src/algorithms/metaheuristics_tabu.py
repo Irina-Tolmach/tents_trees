@@ -172,14 +172,14 @@ class Metaheuristics:
     def delta_evaluate_update(self, tents, old_pos, new_pos, old_score, row_counts_old, col_counts_old):
         if old_pos == new_pos:
             return old_score
-        row_counts = row_counts_old
-        col_counts = col_counts_old
+        row_counts = row_counts_old[:]
+        col_counts = col_counts_old[:]
 
         x1, y1 = old_pos
         x2, y2 = new_pos
 
         delta = 0
-        #old_visited_pairs = set()
+        old_visited_pairs = set()
 
         tent_set = set(tents)
         if old_pos not in tent_set:
@@ -217,21 +217,64 @@ class Metaheuristics:
             b = (before + delta_count) - self.col_limits[j]
             return self.w_line*(b*b - a*a)
 
-        if x1 != x2:
-            delta += row_penalty(x1, -1)
-            delta += row_penalty(x2, 1)
+        delta += row_penalty(x1, -1)
+        delta += col_penalty(y1, -1)
+        row_counts[x1] -= 1
+        col_counts[y1] -= 1
+        delta += row_penalty(x2, 1)
+        delta += col_penalty(y2, 1)
 
-        if y1 != y2:
-            delta += col_penalty(y1, -1)
-            delta += col_penalty(y2, 1)
-
-        # delta += row_penalty(x1, -1)
-        # delta += col_penalty(y1, -1)
-        # row_counts[x1] -= 1
-        # col_counts[y1] -= 1
-        # delta += row_penalty(x2, 1)
-        # delta += col_penalty(y2, 1)
-
+        # if old_pos not in tent_set:
+        #     return None
+        #
+        # муть
+        #  # соседи old_pos до переноса
+        # old_neighbors = set()
+        # for dx, dy in NEIGHBORS:
+        #     nx, ny = x1 + dx, y1 + dy
+        #     if (nx, ny) in tent_set:
+        #         old_neighbors.add((nx, ny))
+        #
+        # deg_old = len(old_neighbors)
+        #
+        # # состояние после переноса
+        # tent_set.remove(old_pos)
+        # tent_set.add(new_pos)
+        #
+        # # соседи new_pos после переноса
+        # new_neighbors = set()
+        # for dx, dy in NEIGHBORS:
+        #     nx, ny = x2 + dx, y2 + dy
+        #     if (nx, ny) in tent_set:
+        #         new_neighbors.add((nx, ny))
+        #
+        # deg_new = len(new_neighbors)
+        #
+        # # вклад самой переносимой палатки:
+        # я
+        # delta_adj = 0.5 * (deg_new * deg_new - deg_old * deg_old)
+        #
+        # # объединение перемешенных палаток
+        # affected = old_neighbors | new_neighbors
+        #
+        # for p in affected:
+        #     # степень палатки до переноса
+        #     deg_before = 0
+        #     for dx, dy in NEIGHBORS:
+        #         qx, qy = p[0] + dx, p[1] + dy
+        #         if (qx, qy) in tents:
+        #             deg_before += 1
+        #
+        #     # степень этой палатки после переноса
+        #     deg_after = 0
+        #     for dx, dy in NEIGHBORS:
+        #         qx, qy = p[0] + dx, p[1] + dy
+        #         if (qx, qy) in tent_set:
+        #             deg_after += 1
+        #
+        #     delta_adj += 0.5 * (deg_after * deg_after - deg_before * deg_before)
+        #
+        # delta += delta_adj
 
         return old_score + delta
 
@@ -274,7 +317,7 @@ class Metaheuristics:
                 tents[i] = random.choice(neighbors)
 
     def tabu_search(self, row_limits, col_limits, tabu_size=150, max_stagnation=200):
-        #tabu_size = math.sqrt(len(self.trees)).__ceil__()
+        tabu_size = math.sqrt(len(self.trees)).__ceil__()
         for _ in range(5):
             initializer = GreedyInitializer(self.grid.copy(), row_limits[:], col_limits[:])
             trees, current_tents = initializer.initialize()
@@ -291,8 +334,6 @@ class Metaheuristics:
         current_score = best_score
 
         tabu_list = deque(maxlen=tabu_size)
-        #tabu_queue = deque()
-        #tabu_set = set()
         stagnation = 0
 
         row_counts = self.row_counts[:]
@@ -313,21 +354,17 @@ class Metaheuristics:
                 for candidate in neighbors:
                     if (i, candidate) in tabu_list and current_score <= best_score:
                         continue
-                    #move = (i, candidate)
-                    #if move in tabu_set and current_score <= best_score:
-                    #    continue
-                    #row_counts_tmp = row_counts[:]
-                    #col_counts_tmp = col_counts[:]
+
+                    row_counts_tmp = row_counts[:]
+                    col_counts_tmp = col_counts[:]
 
                     new_score = self.delta_evaluate_update(
                         current_tents,
                         current_tent,
                         candidate,
                         current_score,
-                        #row_counts_tmp,
-                        #col_counts_tmp
-                        row_counts,
-                        col_counts
+                        row_counts_tmp,
+                        col_counts_tmp
                     )
 
                     self.eva += 1
@@ -336,20 +373,11 @@ class Metaheuristics:
 
                     if new_score < best_candidate_score:
                         best_candidate_score = new_score
-                        row_counts_tmp = row_counts[:]
-                        col_counts_tmp = col_counts[:]
-
                         row_counts_tmp[current_tent[0]] -= 1
                         col_counts_tmp[current_tent[1]] -= 1
                         row_counts_tmp[candidate[0]] += 1
                         col_counts_tmp[candidate[1]] += 1
-
                         best_candidate = (i, candidate, row_counts_tmp, col_counts_tmp)
-                        # row_counts_tmp[current_tent[0]] -= 1
-                        # col_counts_tmp[current_tent[1]] -= 1
-                        # row_counts_tmp[candidate[0]] += 1
-                        # col_counts_tmp[candidate[1]] += 1
-                        # best_candidate = (i, candidate, row_counts_tmp, col_counts_tmp)
 
             if best_candidate is None:
                 stagnation += 1
@@ -361,14 +389,6 @@ class Metaheuristics:
             current_score = best_candidate_score
 
             tabu_list.append((i, current_tent))
-            #move = (i, current_tent)
-            #tabu_queue.append(move)
-            #tabu_set.add(move)
-
-            # if len(tabu_queue) > tabu_size:
-            #     old_move = tabu_queue.popleft()
-            #     tabu_set.discard(old_move)
-
 
             if current_score < best_score:
                 best_score = current_score

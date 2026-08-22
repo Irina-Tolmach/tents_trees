@@ -16,7 +16,7 @@ NEIGHBORS = [(-1, -1), (-1, 0), (-1, 1),
              (1, -1),  (1, 0),  (1, 1)]
 
 
-class Metaheuristics_Old:
+class Metaheuristics:
     def __init__(self, grid, row_limits, col_limits, max_iters=1000):
         self.grid = np.array(grid, dtype=np.int8)
         self.n = len(grid)
